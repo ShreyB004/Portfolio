@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shrey Bhangale | Architect_004</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="loading">
+
+    <svg style="display: none;">
+        <defs>
+            <filter id="noiseFilter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.6" stitchTiles="stitch"/>
+                <feColorMatrix in="colorNoise" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+                <feComposite operator="in" in2="SourceGraphic" result="monoNoise"/>
+                <feBlend in="SourceGraphic" in2="monoNoise" mode="multiply" />
+            </filter>
+        </defs>
+    </svg>
+    <div id="noise-overlay"></div>
+    <div id="scanlines"></div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- CUSTOM CURSOR -->
+    <div id="cursor">
+        <div class="cursor-center"></div>
+        <div class="cursor-bounds">
+            <svg class="cursor-svg" viewBox="0 0 100 100">
+                <path class="c-path" d="M10,10 L30,10 M90,10 L70,10 M10,90 L30,90 M90,90 L70,90 M10,10 L10,30 M90,10 L90,30 M10,90 L10,70 M90,90 L90,70"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div class="loader-layout">
+            <div class="bios-terminal" id="bios-terminal">
+            </div>
+            
+            <div class="loader-visual">
+                <svg viewBox="0 0 100 100" class="orbital-ring outer-ring">
+                    <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0, 240, 255, 0.2)" stroke-width="1"></circle>
+                    <path d="M50 2 A48 48 0 0 1 98 50" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <svg viewBox="0 0 100 100" class="orbital-ring inner-ring">
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(139, 92, 246, 0.2)" stroke-width="1"></circle>
+                    <path d="M50 85 A35 35 0 0 1 15 50" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <div class="spinner-core"></div>
+            </div>
+
+            <div class="loader-data">
+                <div class="loader-text glitch-target" data-text="INITIALIZING_CORE_SYSTEMS">INITIALIZING_CORE_SYSTEMS</div>
+                <div class="loader-progress-wrap">
+                    <div class="loader-bar" id="loader-bar"></div>
+                </div>
+                <div class="loader-progress"><span id="l-val">00</span>%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PARALLAX GRID -->
+    <div class="guide-lines parallax-bg">
+        <div class="guide-line"></div>
+        <div class="guide-line"></div>
+        <div class="guide-line"></div>
+        <div class="guide-line"></div>
+        <div class="guide-line"></div>
+    </div>
+
+    <!-- HUD INTERFACE -->
+    <div id="hud-overlay">
+        <div class="hud-bracket tl"></div>
+        <div class="hud-bracket tr"></div>
+        <div class="hud-bracket bl"></div>
+        <div class="hud-bracket br"></div>
+        
+        <header class="top-bar">
+            <div class="brand magnetic-wrap">
+                <div class="magnetic-inner">
+                    <span class="brand-name glitch-hover" data-text="SHREY.B">SHREY.B</span>
+                    <span class="brand-status pulse-glow">Dev</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="#hero" class="nav-item magnetic-wrap"><span class="magnetic-inner scramble-on-hover">HOME</span></a>
+                <a href="#about" class="nav-item magnetic-wrap"><span class="magnetic-inner scramble-on-hover">ABOUT</span></a>
+                <a href="#projects" class="nav-item magnetic-wrap"><span class="magnetic-inner scramble-on-hover">PROJECTS</span></a>
+                <a href="#contact" class="nav-item magnetic-wrap"><span class="magnetic-inner scramble-on-hover">CONTACT</span></a>
+            </nav>
+            <div class="hud-readout clock glow-text">00:00:00</div>
+        </header>
+
+        <div class="side-markers left-markers">
+            <div class="marker data-stream" id="geo-lat"><span>LAT.</span> <span class="val blur-reveal">LOCATING...</span></div>
+            <div class="marker data-stream" id="geo-lng"><span>LNG.</span> <span class="val blur-reveal">LOCATING...</span></div>
+        </div>
+
+        <div class="side-markers right-markers">
+            <div class="scroll-tracker">
+                <div class="scroll-line"><div class="scroll-thumb"></div></div>
+                <div class="scroll-val">000</div>
+            </div>
+        </div>
+
+        <footer class="bottom-bar">
+            <div class="coord-tracker" id="cursor-coords">X:0000 Y:0000</div>
+            <div class="sys-msg marquee-wrap">
+                <div class="marquee-inner">
+                    <span>PORTFOLIO // SHREY BHANGALE // SECURE UPLINK ESTABLISHED // FETCHING REALTIME TELEMETRY // </span>
+                    <span>PORTFOLIO // SHREY BHANGALE // SECURE UPLINK ESTABLISHED // FETCHING REALTIME TELEMETRY // </span>
+                </div>
+            </div>
+            <div class="power-meter">
+                <div class="mem-lbl">MEM_USAGE</div>
+                <div class="power-bars" id="mem-bars">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div id="mem-val">42%</div>
+            </div>
+        </footer>
+    </div>
+
+    <main id="scroll-container">
+        
+        <section id="hero" class="view-section">
+            <div class="hero-content">
+                <div class="hero-subtitle float-anim">
+                    <span class="cross pulse-fast">+</span> DISCOVER THE VASTNESS OF CODE
+                </div>
+                <h1 class="hero-title">
+                    <div class="title-line"><span class="reveal-text">SOFTWARE</span></div>
+                    <div class="title-line"><span class="reveal-text accent-orbitron">ARCHITECT</span></div>
+                </h1>
+                <div class="hero-details">
+                    <p class="fade-up-text">Experience the seamless integration of low-level embedded systems and high-performance full-stack architectures. Transforming complex logic into elegant solutions.</p>
+                    <a href="#about" class="explore-btn magnetic-wrap">
+                        <div class="explore-circle magnetic-inner">
+                            <span class="explore-text glitch-target" data-text="EXPLORE">EXPLORE</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="hero-annotations">
+                    <div class="annotation slide-in-right">
+                        <span class="lbl">FOCUS</span>
+                        <span class="val glitch-hover" data-text="SYSTEM DESIGN">SYSTEM DESIGN</span>
+                    </div>
+                    <div class="annotation slide-in-right delay-1">
+                        <span class="lbl">STACK</span>
+                        <span class="val glitch-hover" data-text="C++ / JS / PY">C++ / JS / PY</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="view-section">
+            <div class="section-header">
+                <div class="sec-num pulse-glow">01</div>
+                <h2 class="tracking-in">ABOUT ME</h2>
+                <div class="sec-line load-line"></div>
+            </div>
+            
+            <div class="about-layout">
+                <div class="about-text glass-panel bevel-box hover-3d">
+                    <div class="glass-glare"></div>
+                    <h3 class="typewriter">ANALYTICAL & SYSTEMS-FOCUSED</h3>
+                    <p>I am a developer with a strong foundation in Electrical Engineering and deep expertise in software architecture. My track record includes building low-level systems like syntax interpreters and embedded firmware, alongside high-performance full-stack web applications.</p>
+                    <p>I specialize in real-time data synchronization, compiler design principles, and algorithmic problem-solving. My core philosophy is writing clean, highly optimized code for complex software challenges.</p>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric counter-wrap">
+                            <span class="val">B.E.</span>
+                            <span class="lbl">ELECTRICAL ENG.</span>
+                        </div>
+                        <div class="metric counter-wrap">
+                            <span class="val"><span class="counter-tgt" data-count="100">0</span>%</span>
+                            <span class="lbl">OPTIMIZATION</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skills-module glass-panel bevel-box hover-3d">
+                    <div class="glass-glare"></div>
+                    <div class="module-header">
+                        <span class="mod-icon spin-slow">◱</span>
+                        <span class="glitch-hover" data-text="TECHNICAL_SKILLS">TECHNICAL_SKILLS</span>
+                    </div>
+                    
+                    <div class="skill-group stagger-item">
+                        <div class="skill-lbl">LANGUAGES</div>
+                        <div class="skill-tags">
+                            <span class="mag-tag">C++</span><span class="mag-tag">Embedded C++</span><span class="mag-tag">JavaScript (ES6+)</span><span class="mag-tag">Python</span>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-group stagger-item">
+                        <div class="skill-lbl">WEB & ARCHITECTURE</div>
+                        <div class="skill-tags">
+                            <span class="mag-tag">Node.js</span><span class="mag-tag">React</span><span class="mag-tag">RESTful APIs</span><span class="mag-tag">Optimization</span>
+                        </div>
+                    </div>
+
+                    <div class="skill-group stagger-item">
+                        <div class="skill-lbl">DATABASES & CLOUD</div>
+                        <div class="skill-tags">
+                            <span class="mag-tag">Firebase RTDB</span><span class="mag-tag">GCP</span><span class="mag-tag">DBMS</span><span class="mag-tag">API Integration</span>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-group stagger-item">
+                        <div class="skill-lbl">CORE COMPETENCIES</div>
+                        <div class="skill-tags">
+                            <span class="mag-tag">System Design</span><span class="mag-tag">Compilers</span><span class="mag-tag">Reverse Eng.</span><span class="mag-tag">Algorithms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="view-section">
+            <div class="section-header">
+                <div class="sec-num pulse-glow">02</div>
+                <h2 class="tracking-in">DEPLOYED ARTIFACTS</h2>
+                <div class="sec-line load-line"></div>
+            </div>
+
+            <div class="projects-grid">
+                <div class="project-card bevel-box interactive-card" data-id="eesa">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco">
+                        <div class="dot pulse-fast"></div>
+                        <div class="line"></div>
+                    </div>
+                    <div class="card-meta">FULLSTACK APPLICATION</div>
+                    <h3 class="card-title text-shadow-glow">EESA Platform</h3>
+                    <div class="card-sub type-anim">Student Association Management System</div>
+                    <div class="card-tech">
+                        <span>JavaScript</span><span>Authentication</span><span>Event Management</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card" data-id="protojs">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco">
+                        <div class="dot pulse-fast"></div>
+                        <div class="line"></div>
+                    </div>
+                    <div class="card-meta">COMPILER DESIGN</div>
+                    <h3 class="card-title text-shadow-glow">ProtoJS</h3>
+                    <div class="card-sub type-anim">Custom JavaScript Syntax Interpreter</div>
+                    <div class="card-tech">
+                        <span>JavaScript</span><span>AST</span><span>Compiler Theory</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card" data-id="smartgrid">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco">
+                        <div class="dot pulse-fast"></div>
+                        <div class="line"></div>
+                    </div>
+                    <div class="card-meta">EMBEDDED SYSTEM</div>
+                    <h3 class="card-title text-shadow-glow">SmartGrid Automata</h3>
+                    <div class="card-sub type-anim">ESP32 Powered Grid Automation</div>
+                    <div class="card-tech">
+                        <span>Embedded C++</span><span>ESP32</span><span>Websockets</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+                
+                <div class="project-card bevel-box interactive-card" data-id="chatapp">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco"><div class="dot pulse-fast"></div><div class="line"></div></div>
+                    <div class="card-meta">REALTIME COMMUNICATION</div>
+                    <h3 class="card-title text-shadow-glow">ChatApp Beta</h3>
+                    <div class="card-sub type-anim">Firebase Synchronized Client</div>
+                    <div class="card-tech">
+                        <span>JavaScript</span><span>Firebase</span><span>Realtime DB</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card" data-id="shree">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco"><div class="dot pulse-fast"></div><div class="line"></div></div>
+                    <div class="card-meta">CORPORATE DEPLOYMENT</div>
+                    <h3 class="card-title text-shadow-glow">Shree Eng.</h3>
+                    <div class="card-sub type-anim">Interactive Web Presence</div>
+                    <div class="card-tech">
+                        <span>Frontend</span><span>UI/UX</span><span>Animations</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card" data-id="invoice">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco"><div class="dot pulse-fast"></div><div class="line"></div></div>
+                    <div class="card-meta">GMAIL AUTOMATION</div>
+                    <h3 class="card-title text-shadow-glow">Invoice Tracker</h3>
+                    <div class="card-sub type-anim">GCP & Gmail Notification Pipeline</div>
+                    <div class="card-tech">
+                        <span>Google Cloud</span><span>Gmail API</span><span>Backend</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card" data-id="todo">
+                    <div class="card-bg-anim"></div>
+                    <div class="card-deco"><div class="dot pulse-fast"></div><div class="line"></div></div>
+                    <div class="card-meta">FULLSTACK UTILITY</div>
+                    <h3 class="card-title text-shadow-glow">Advanced Todo</h3>
+                    <div class="card-sub type-anim">Data Persistence & Sync</div>
+                    <div class="card-tech">
+                        <span>CRUD Logic</span><span>Database</span><span>Architecture</span>
+                    </div>
+                    <div class="card-action">VIEW ARTIFACT <span class="arr">→</span></div>
+                </div>
+
+                <div class="project-card bevel-box interactive-card github-fetch full-width-card" data-id="github">
+                    <div class="card-bg-anim pulse-bg"></div>
+                    <div class="card-deco"><div class="dot pulse-fast"></div><div class="line"></div></div>
+                    <div class="card-meta glow-text">LIVE SYNC_</div>
+                    <h3 class="card-title text-shadow-glow">GitHub Matrix</h3>
+                    <div class="card-sub">Extracting Open Source Data via Rest API...</div>
+                    <div class="card-tech">
+                        <span>Open Source</span><span>REST API</span><span>Data Fetch</span>
+                    </div>
+                    <div class="card-action">INITIATE FETCH <span class="arr">→</span></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="contact" class="view-section">
+            <div class="section-header">
+                <div class="sec-num pulse-glow">03</div>
+                <h2 class="tracking-in">ESTABLISH UPLINK</h2>
+                <div class="sec-line load-line"></div>
+            </div>
+
+            <div class="contact-layout">
+                <div class="contact-info bevel-box glass-panel hover-3d">
+                    <div class="glass-glare"></div>
+                    <h3 class="glitch-target" data-text="INITIATE COMMUNICATION">INITIATE COMMUNICATION</h3>
+                    <p>Secure channel open for collaborations, architectural consultations, and software engineering protocols.</p>
+                    
+                    <div class="contact-links">
+                        <a href="mailto:shreybhangale@gmail.com" class="c-link magnetic-wrap">
+                            <span class="magnetic-inner">
+                                <span class="lbl">EMAIL</span>
+                                <span class="val">shreybhangale@gmail.com</span>
+                            </span>
+                        </a>
+                        <a href="tel:+917218918131" class="c-link magnetic-wrap">
+                            <span class="magnetic-inner">
+                                <span class="lbl">FREQUENCY</span>
+                                <span class="val">+91 7218918131</span>
+                            </span>
+                        </a>
+                        <a href="https://github.com/shreyb004" target="_blank" class="c-link magnetic-wrap">
+                            <span class="magnetic-inner">
+                                <span class="lbl">GITHUB</span>
+                                <span class="val">github.com/shreyb004</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                
+                <form id="contact-uplink" class="contact-form bevel-box glass-panel hover-3d" novalidate>
+                    <div class="glass-glare"></div>
+                    
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="f-name">DESIGNATION / NAME</label>
+                            <input type="text" id="f-name" class="bevel-input" placeholder="Enter ID...">
+                            <span class="err-msg" id="err-name"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="f-email">RETURN FREQUENCY / EMAIL</label>
+                            <input type="email" id="f-email" class="bevel-input" placeholder="Secure address...">
+                            <span class="err-msg" id="err-email"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="f-msg">TRANSMISSION PAYLOAD</label>
+                        <textarea id="f-msg" class="bevel-input" rows="4" placeholder="Enter data..."></textarea>
+                        <span class="err-msg" id="err-msg"></span>
+                    </div>
+
+                    <div id="form-status" class="form-status-msg"></div>
+
+                    <button type="submit" class="submit-btn bevel-box magnetic-wrap" id="submit-btn">
+                        <div class="btn-hover-fx"></div>
+                        <span class="btn-text magnetic-inner" id="submit-text">TRANSMIT PACKET</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+        
+        <div class="spacer"></div>
+    </main>
+
+    <div id="project-modal" class="modal-overlay">
+        <div class="modal-cyber-grid"></div>
+        <div class="modal-backdrop-fx"></div>
+
+        <div class="modal-container bevel-box" id="modal-box">
+            
+            <div class="modal-scanline"></div>
+
+            <div class="modal-header">
+                <div class="modal-id pulse-glow"><span class="highlight">SYS_</span>DETAILS</div>
+                <button class="close-modal magnetic-wrap">
+                    <div class="magnetic-inner">
+                        <span></span><span></span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-main">
+                    <div class="modal-anim-item">
+                        <h2 id="m-title" class="glitch-target" data-text="Project Title">Project Title</h2>
+                    </div>
+                    <div class="modal-anim-item">
+                        <div class="m-meta" id="m-meta">Date Range</div>
+                    </div>
+                    <div class="modal-anim-item">
+                        <div class="m-desc" id="m-desc">Description goes here...</div>
+                    </div>
+                    <div class="m-features modal-anim-item">
+                        <h4>KEY ARCHITECTURE</h4>
+                        <ul id="m-list"></ul>
+                    </div>
+                </div>
+
+                <div class="modal-sidebar">
+                    <div class="modal-anim-item">
+                        <div class="m-tech-title">DEPENDENCIES</div>
+                        <div class="m-tech-list" id="m-tech"></div>
+                    </div>
+                    <div class="modal-anim-item">
+                        <div class="m-links" id="m-links"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
