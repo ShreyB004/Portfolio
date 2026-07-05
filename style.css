@@ -405,6 +405,7 @@ body.hover-state .cursor-svg {
 
 .hud-readout {
     font-family: var(--font-head);
+    width: 105px;
     font-size: clamp(0.85rem, 1.5vw, 1rem);
     letter-spacing: 3px;
     color: var(--acc-cyan);
