@@ -40,7 +40,7 @@ magnets.forEach(wrap => {
         gsap.to(inner, { x, y, duration: 0.3, ease: "power2.out" });
     });
     wrap.addEventListener('mouseleave', () => {
-        gsap.to(inner, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+        gsap.to(inner, { x: 0, y: 0, duration: 1.5, ease: "elastic.out(1, 0.3)" });
     });
 });
 
