@@ -151,58 +151,39 @@ setInterval(() => {
     });
 }, 2500);
 
-const canvas = document.getElementById('webgl-canvas');
+const canvas = document.querySelector('#webgl-canvas');
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x020306, 0.04);
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({canvas, alpha: true, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const geometry = new THREE.PlaneGeometry(100, 100, 40, 40);
-const material = new THREE.MeshBasicMaterial({ 
-    color: 0x00f0ff, 
-    wireframe: true, 
-    transparent: true, 
-    opacity: 0.12
+const geo = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const mat = new THREE.MeshBasicMaterial({color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.1});
+const mesh = new THREE.Mesh(geo, mat);
+scene.add(mesh);
+
+camera.position.z = 25;
+
+let targetX = 0, targetY = 0;
+
+window.addEventListener('mousemove', e => {
+    targetX = (e.clientX - window.innerWidth/2) * 0.01;
+    targetY = (e.clientY - window.innerHeight/2) * 0.01;
 });
 
-const pos = geometry.attributes.position;
-for (let i = 0; i < pos.count; i++) {
-    const z = Math.random() * 2 - 1;
-    pos.setZ(i, z);
-}
-
-const plane = new THREE.Mesh(geometry, material);
-plane.rotation.x = -Math.PI / 2;
-plane.position.y = -5;
-scene.add(plane);
-
-camera.position.z = 10;
-camera.position.y = 2;
-
-let camTargetX = 0, camTargetY = 0;
-
-window.addEventListener('mousemove', (e) => {
-    camTargetX = (e.clientX - window.innerWidth / 2) * 0.005;
-    camTargetY = (e.clientY - window.innerHeight / 2) * 0.005;
-});
-
-let time = 0;
-function animateEnv() {
-    requestAnimationFrame(animateEnv);
-    time += 0.005;
-    
-    plane.position.z = (time * 10) % 2.5;
-    
-    camera.position.x += (camTargetX - camera.position.x) * 0.05;
-    camera.position.y += ((2 - camTargetY) - camera.position.y) * 0.05;
-    camera.rotation.z = camera.position.x * -0.1;
-    
+function anim3D() {
+    requestAnimationFrame(anim3D);
+    mesh.rotation.x += 0.002; mesh.rotation.y += 0.003;
+    camera.position.x += (targetX - camera.position.x) * 0.05;
+    camera.position.y += (-targetY - camera.position.y) * 0.05;
+    camera.lookAt(scene.position);
     renderer.render(scene, camera);
 }
-animateEnv();
+anim3D();
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
