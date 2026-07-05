@@ -173,7 +173,7 @@ window.addEventListener('mousemove', e => {
 
 function anim3D() {
     requestAnimationFrame(anim3D);
-    mesh.rotation.x += 0.002; mesh.rotation.y += 0.003;
+    mesh.rotation.x += 0.0002; mesh.rotation.y += 0.0003;
     camera.position.x += (targetX - camera.position.x) * 0.05;
     camera.position.y += (-targetY - camera.position.y) * 0.05;
     camera.lookAt(scene.position);
